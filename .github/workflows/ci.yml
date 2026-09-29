@@ -49,7 +49,7 @@ jobs:
       - run: cargo test -p scout-viewer-ui
 
   test:
-    name: test (fixtures, Chrome ${{ env.CHROME_VERSION }})
+    name: test (fixtures, pinned Chrome for Testing)
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7

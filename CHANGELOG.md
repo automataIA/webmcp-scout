@@ -119,6 +119,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Profile cleanup waited for nothing: Chrome rewrites its `argv` into one space-separated string, so the exact-argument match on `/proc/<pid>/cmdline` never found a Chrome process and the profile was deleted while helpers were still running. Arguments are now split on spaces as well.
+- CI workflow rejected by GitHub before any job ran: the `test` job name used `${{ env.CHROME_VERSION }}`, and the `env` context is not available in `jobs.<id>.name`. The name no longer carries the version; the Chrome install step still prints it.
 
 ### Notes
 
