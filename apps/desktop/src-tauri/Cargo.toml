@@ -1,0 +1,26 @@
+[package]
+name = "scout-viewer"
+description = "WebMCP Scout trace viewer (Tauri shell)."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "scout_viewer_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+scout-types.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tauri = { version = "2", features = ["devtools"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

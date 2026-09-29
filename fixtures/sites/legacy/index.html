@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Legacy API fixture</title></head>
+<body>
+<h1>Legacy WebMCP API fixture</h1>
+<p id="status">loading…</p>
+<script>
+  // Written against the old `navigator.modelContext` API (like the Shoe Store
+  // demo). Exposes no tools on Chrome 154 unless the legacy shim is injected.
+  const status = document.getElementById("status");
+  const mc = navigator.modelContext;
+  if (!mc) {
+    status.textContent = "navigator.modelContext unavailable";
+  } else {
+    mc.registerTool({
+      name: "list_items",
+      description: "Lists all items in the legacy store.",
+      execute: async () => "Found 2 items: Blue Mug, Red Mug",
+    });
+    mc.registerTool({
+      name: "temporary",
+      description: "Registered then unregistered; must not be visible.",
+      execute: async () => "should not run",
+    });
+    mc.unregisterTool("temporary");
+    status.textContent = "legacy tools registered";
+  }
+</script>
+</body>
+</html>

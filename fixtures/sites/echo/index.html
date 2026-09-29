@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Echo fixture</title></head>
+<body>
+<h1>Echo fixture</h1>
+<p id="status">loading…</p>
+<script>
+  // Idempotent tools used to probe how Chrome delivers arguments and results,
+  // and how navigation during a call is reported. Safe to call repeatedly.
+  const mc = document.modelContext;
+  const status = document.getElementById("status");
+  if (!mc) {
+    status.textContent = "WebMCP unavailable";
+  } else {
+    const tools = [
+      {
+        name: "echo",
+        title: "Echo",
+        description: "Returns the input exactly as received by the page, with its JS type.",
+        inputSchema: {
+          type: "object",
+          properties: { message: { type: "string" }, count: { type: "integer" } },
+          required: ["message"],
+        },
+        execute: async (input) => JSON.stringify({ type: typeof input, received: input }),
+      },
+      {
+        name: "echo_object",
+        description: "Returns a plain object instead of a string.",
+        inputSchema: { type: "object", properties: {} },
+        execute: async () => ({ ok: true, items: [1, 2] }),
+      },
+      {
+        name: "set_hash",
+        description: "Changes location.hash (same-document navigation).",
+        inputSchema: { type: "object", properties: { hash: { type: "string" } }, required: ["hash"] },
+        execute: async ({ hash }) => { location.hash = hash; return "hash set"; },
+      },
+      {
+        name: "navigate_away",
+        description: "Starts a full-page navigation to other.html before returning.",
+        inputSchema: { type: "object", properties: {} },
+        execute: async () => { location.href = "other.html"; await new Promise((r) => setTimeout(r, 2000)); return "navigated"; },
+      },
+      {
+        name: "fail",
+        description: "Always throws.",
+        inputSchema: { type: "object", properties: {} },
+        execute: async () => { throw new Error("fixture failure"); },
+      },
+    ];
+    Promise.all(tools.map((t) => mc.registerTool(t)))
+      .then(() => (status.textContent = `${tools.length} tools registered`))
+      .catch((e) => (status.textContent = `registration failed: ${e}`));
+  }
+</script>
+</body>
+</html>

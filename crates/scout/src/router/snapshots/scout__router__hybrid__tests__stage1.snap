@@ -1,0 +1,59 @@
+---
+source: crates/scout/src/router/hybrid.rs
+expression: "QuestionSet\n{ state: state(BOOTS, &routable), questions: stage1_questions(&routable), }"
+---
+{
+  "state": {
+    "available_tools": [
+      {
+        "description": "get_product tool",
+        "name": "get_product",
+        "parameters": {
+          "sku": {
+            "description": null,
+            "required": true
+          }
+        }
+      },
+      {
+        "description": "search_products tool",
+        "name": "search_products",
+        "parameters": {
+          "category": {
+            "description": null,
+            "required": false
+          },
+          "max_price": {
+            "description": null,
+            "required": false
+          },
+          "query": {
+            "description": null,
+            "required": true
+          }
+        }
+      }
+    ],
+    "user_request": "size 42 soccer boots under 80 euros"
+  },
+  "questions": {
+    "__act__": {
+      "type": "noul",
+      "instructions": "Does `user_request` ask for something that one of `available_tools` can do? Answer yes even if a detail the tool needs is missing from the request."
+    },
+    "__tool__": {
+      "type": "choice",
+      "instructions": "Which tool in `available_tools` best serves `user_request`?",
+      "criteria": {
+        "t0": {
+          "description": "get_product tool",
+          "name": "get_product"
+        },
+        "t1": {
+          "description": "search_products tool",
+          "name": "search_products"
+        }
+      }
+    }
+  }
+}

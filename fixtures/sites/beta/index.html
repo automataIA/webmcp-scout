@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Beta Shoes</title></head>
+<body>
+<h1>Beta Shoes (fixture shop)</h1>
+<p id="status">loading…</p>
+<script>
+  // A second shop with a different output shape than `alpha`: prices in
+  // cents, EU sizes as strings, a boolean stock flag and relative links.
+  const CATALOG = [
+    { code: "B-1", label: "Velocity Soccer Cleats", kind: "soccer", price_cents: 12900, sizes_eu: ["41", "42", "43"], available: true },
+    { code: "B-2", label: "Match Pro Soccer Boots", kind: "soccer", price_cents: 9900, sizes_eu: ["39", "40", "41"], available: true },
+    { code: "B-3", label: "Indoor Futsal Soccer Shoes", kind: "soccer", price_cents: 6500, sizes_eu: ["42", "44"], available: false },
+    { code: "B-4", label: "Street Soccer Trainers", kind: "soccer", price_cents: 8900, sizes_eu: ["42", "43", "44"], available: true },
+    { code: "B-5", label: "Marathon Running Flats", kind: "running", price_cents: 11000, sizes_eu: ["40", "41", "42"], available: true },
+  ];
+  const mc = document.modelContext;
+  const status = document.getElementById("status");
+  if (!mc) {
+    status.textContent = "WebMCP unavailable";
+  } else {
+    mc.registerTool({
+      name: "find_shoes",
+      title: "Find shoes",
+      description: "Find shoes in the Beta Shoes catalog by keywords.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          keywords: { type: "string", description: "Words to look for in the shoe name, e.g. 'soccer boots'." },
+        },
+        required: ["keywords"],
+      },
+      annotations: { readOnlyHint: true },
+      execute: async ({ keywords }) => {
+        const words = String(keywords).toLowerCase().split(/\s+/).filter(Boolean);
+        const results = CATALOG.filter((s) =>
+          words.some((w) => s.label.toLowerCase().includes(w.replace(/s$/, ""))));
+        return JSON.stringify({
+          results: results.map(({ kind, ...s }) => ({ ...s, link: `p/${s.code}` })),
+        });
+      },
+    })
+      .then(() => (status.textContent = "1 tool registered"))
+      .catch((e) => (status.textContent = `registration failed: ${e}`));
+  }
+</script>
+</body>
+</html>

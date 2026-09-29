@@ -1,0 +1,63 @@
+---
+source: crates/scout/src/router/hybrid.rs
+expression: "QuestionSet\n{\n    state: state(BOOTS, &routable[1..]), questions:\n    stage2_questions(routable[1], BOOTS),\n}"
+---
+{
+  "state": {
+    "available_tools": [
+      {
+        "description": "search_products tool",
+        "name": "search_products",
+        "parameters": {
+          "category": {
+            "description": null,
+            "required": false
+          },
+          "max_price": {
+            "description": null,
+            "required": false
+          },
+          "query": {
+            "description": null,
+            "required": true
+          }
+        }
+      }
+    ],
+    "user_request": "size 42 soccer boots under 80 euros"
+  },
+  "questions": {
+    "search_products.category": {
+      "type": "choice",
+      "instructions": "Which value should the `category` parameter of the `search_products` tool take for `user_request`?",
+      "criteria": {
+        "o0": "ALL",
+        "o1": "SOCCER",
+        "o2": "RUNNING"
+      }
+    },
+    "search_products.category?": {
+      "type": "noul",
+      "instructions": "Does `user_request` state or clearly imply a value for the `category` parameter of the `search_products` tool?"
+    },
+    "search_products.max_price": {
+      "type": "choice",
+      "instructions": "Which number in `user_request` is the value of the `max_price` parameter of the `search_products` tool?",
+      "criteria": {
+        "c0": {
+          "context": "size 42 soccer boots under",
+          "number": "42"
+        },
+        "c1": {
+          "context": "soccer boots under 80 euros",
+          "number": "80"
+        },
+        "none": "None of these numbers is the `max_price`"
+      }
+    },
+    "search_products.max_price?": {
+      "type": "noul",
+      "instructions": "Does `user_request` state or clearly imply a value for the `max_price` parameter of the `search_products` tool?"
+    }
+  }
+}

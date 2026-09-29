@@ -1,0 +1,26 @@
+/target
+/dist
+.env
+.env.local
+.playwright-cli/
+node_modules/
+/traces
+/info
+
+/local_router/.venv
+/local_router/out
+__pycache__/
+/ARTICOLO.md
+/SKILL.md
+/research
+
+# Kept locally, not published
+/AGENTS.md
+/CLAUDE.md
+/PLAN.md
+/contesto.md
+/scripts/typesafe_probe.py
+/evals/cache/jev
+/docs/evals/routing-m4-jev-*.jsonl
+/docs/evals/routing-local-vs-jev.md
+/evals

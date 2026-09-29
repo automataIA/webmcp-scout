@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WebMCP Scout · Traces</title>
+  <link data-trunk rel="css" href="style/tailwind.css" />
+  <!-- Current rustc emits bulk-memory, sign-ext and non-trapping float ops for wasm32. -->
+  <link data-trunk rel="rust" data-wasm-opt="z"
+    data-wasm-opt-params="--enable-bulk-memory --enable-sign-ext --enable-nontrapping-float-to-int" />
+</head>
+<body></body>
+</html>

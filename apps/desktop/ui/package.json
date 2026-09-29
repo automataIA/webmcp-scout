@@ -1,0 +1,9 @@
+{
+  "name": "scout-viewer-ui",
+  "private": true,
+  "devDependencies": {
+    "@tailwindcss/cli": "^4",
+    "daisyui": "^5",
+    "tailwindcss": "^4"
+  }
+}

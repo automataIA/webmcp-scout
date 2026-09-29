@@ -1,0 +1,40 @@
+# Capability allowlist. Only the (origin, tool, schema_hash) triples
+# below may run; any other tool, or a listed tool whose input schema changed,
+# is blocked. Get hashes with `scout tools <url>`. The MVP is read-only.
+
+[sites.sport]
+url = "https://googlechromelabs.github.io/webmcp-tools/demos/sport-shop-angular/"
+currency = "USD"
+
+[[sites.sport.capabilities]]
+tool = "search_product"
+schema_hash = "sha256:c8ae5f9e5f74406d5af26e491c6d8d67b4c649d3dab56ac5f47f2343af8adde6"
+class = "read_only"
+adapter = "sport.search_product.v1"
+
+[[sites.sport.capabilities]]
+tool = "get_product_info"
+schema_hash = "sha256:a40929a4e2442de5ecd6f6317a1d6c948b27004156b03928b394721c41591e55"
+class = "read_only"
+
+[[sites.sport.capabilities]]
+tool = "get_store_promos_and_rules"
+schema_hash = "sha256:efddc7bd8bbcef73a14eb1ace1ffdaec81e518ef1e13c1e9271d0b8acb694a49"
+class = "read_only"
+
+# Not allowlisted: `view_product` navigates away, `open_cart` changes UI state.
+
+[sites.shoes]
+url = "https://andreinwald.github.io/webmcp-demo/"
+currency = "USD"
+# Registers its tools with the old `navigator.modelContext` API.
+legacy_shim = true
+
+[[sites.shoes.capabilities]]
+tool = "get_all_store_items"
+schema_hash = "sha256:71fc596a20f27da3dec80050e5d1f553eba34aea24c2853b853488a811e6b892"
+class = "read_only"
+adapter = "shoes.get_all_store_items.v1"
+
+# Not allowlisted: `filter_by_*` change the page filters, `add_to_cart` and
+# `purchase_cart` change the cart, `display_cart` changes the UI.

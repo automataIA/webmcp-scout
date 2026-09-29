@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* The Oxide scanner does not see .rs files on its own. */
+@source "../src/**/*.rs";
+@source "../index.html";
+
+@plugin "daisyui" {
+  themes: corporate --default, business --prefersdark;
+}
+
+@theme {
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", "Fira Code", monospace;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}

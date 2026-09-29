@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  # Pinned Chrome for Testing. WebMCP behavior (argument encoding, schema
+  # shape) is version-sensitive: bump deliberately and rerun the fixture tests.
+  CHROME_VERSION: 154.0.8037.57
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: fmt + clippy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  viewer:
+    name: viewer UI (wasm clippy + tests)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: apps/desktop
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop
+      # The Tauri shell needs WebKitGTK and is built locally; the UI crate
+      # does not.
+      - run: cargo fmt --all --check
+      - run: cargo clippy -p scout-viewer-ui --target wasm32-unknown-unknown -- -D warnings
+      - run: cargo test -p scout-viewer-ui
+
+  test:
+    name: test (fixtures, Chrome ${{ env.CHROME_VERSION }})
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Chrome for Testing
+        run: |
+          curl -fsSLo chrome.zip \
+            "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chrome-linux64.zip"
+          unzip -q chrome.zip -d "$RUNNER_TEMP"
+          echo "SCOUT_CHROME=$RUNNER_TEMP/chrome-linux64/chrome" >> "$GITHUB_ENV"
+          "$RUNNER_TEMP/chrome-linux64/chrome" --version
+
+      # Ubuntu 24.04 blocks unprivileged user namespaces through AppArmor; an
+      # unzipped Chrome has no AppArmor profile, so its sandbox needs this.
+      - name: Allow Chrome sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      # Offline tests only: live tests are #[ignore]d.
+      - run: cargo test --workspace

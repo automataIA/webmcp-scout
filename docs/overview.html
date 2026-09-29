@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WebMCP Scout Overview</title>
+<meta name="description" content="One WebMCP Scout run, end to end: what the user does, what the viewer shows, what happens behind it.">
+<style>
+  :root {
+    --bg: #f4f6fa; --surface: #ffffff; --surface-2: #eef2f7; --line: #dde3ec;
+    --text: #0f172a; --muted: #526077; --accent: #ea580c; --accent-soft: #fff1e8;
+    --ok: #15803d; --ok-soft: #e8f6ee; --block: #b91c1c; --block-soft: #fdecec;
+    --info: #1d4ed8; --info-soft: #e9effd; --term-bg: #0f172a; --term-text: #dbe4f0;
+    --shadow: 0 10px 30px rgba(15, 23, 42, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1120; --surface: #121a2b; --surface-2: #19233a; --line: #26324a;
+      --text: #e6ebf4; --muted: #95a3bb; --accent: #fb923c; --accent-soft: #2a1a10;
+      --ok: #4ade80; --ok-soft: #10261a; --block: #f87171; --block-soft: #2b1414;
+      --info: #7aa2ff; --info-soft: #15203a; --term-bg: #060b16; --term-text: #dbe4f0;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1120; --surface: #121a2b; --surface-2: #19233a; --line: #26324a;
+    --text: #e6ebf4; --muted: #95a3bb; --accent: #fb923c; --accent-soft: #2a1a10;
+    --ok: #4ade80; --ok-soft: #10261a; --block: #f87171; --block-soft: #2b1414;
+    --info: #7aa2ff; --info-soft: #15203a; --term-bg: #060b16; --term-text: #dbe4f0;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  code, pre { font-family: ui-monospace, "SFMono-Regular", Menlo, monospace; }
+  code { font-size: .88em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+  a { color: var(--info); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  /* Header */
+  header.hero { padding: 56px 0 28px; }
+  .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.1; margin: 8px 0 14px; letter-spacing: -.02em; }
+  .lede { font-size: 19px; color: var(--muted); max-width: 760px; margin: 0; }
+  .request {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 22px; padding: 10px 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow);
+    font-size: 15px;
+  }
+  .request b { color: var(--accent); }
+
+  /* Stat strip */
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin: 30px 0 8px; }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .stat .n { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat .l { font-size: 13px; color: var(--muted); }
+  .stat.block .n { color: var(--block); }
+  .stat.ok .n { color: var(--ok); }
+
+  section { padding: 38px 0; }
+  h2 { font-size: 28px; margin: 0 0 6px; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0 0 24px; max-width: 780px; }
+
+  /* Pipeline infographic */
+  .pipe { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; position: relative; }
+  .stage { position: relative; padding: 0 8px; }
+  .stage .dot {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface); border: 2px solid var(--accent); color: var(--accent); font-weight: 800;
+    position: relative; z-index: 1; margin-bottom: 12px;
+  }
+  .stage:not(:last-child)::after {
+    content: ""; position: absolute; top: 21px; left: 52px; right: -8px; height: 2px;
+    background: repeating-linear-gradient(90deg, var(--accent) 0 8px, transparent 8px 13px);
+  }
+  .stage:not(:last-child)::before {
+    content: ""; position: absolute; top: 16px; right: -6px; border: 6px solid transparent;
+    border-left: 9px solid var(--accent); z-index: 1;
+  }
+  .stage h3 { font-size: 15px; margin: 0 0 4px; }
+  .stage p { font-size: 13px; color: var(--muted); margin: 0 0 8px; }
+  .chip {
+    display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: var(--surface-2); color: var(--text); margin: 0 4px 4px 0; font-variant-numeric: tabular-nums;
+  }
+  .chip.ok { background: var(--ok-soft); color: var(--ok); }
+  .chip.block { background: var(--block-soft); color: var(--block); }
+  .chip.info { background: var(--info-soft); color: var(--info); }
+  .trust {
+    margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+  }
+  .trust > div { border-radius: 14px; padding: 14px 16px; border: 1px dashed var(--line); background: var(--surface); font-size: 14px; }
+  .trust b { display: block; margin-bottom: 2px; }
+  .trust .bad { border-color: var(--block); }
+  .trust .good { border-color: var(--ok); }
+
+  /* Setup */
+  .setup { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; display: flex; gap: 10px; align-items: center; }
+  .card p { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
+  .num {
+    flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff;
+    display: grid; place-items: center; font-size: 14px; font-weight: 800;
+  }
+  pre.term {
+    margin: 0; background: var(--term-bg); color: var(--term-text); border-radius: 10px; padding: 12px 14px;
+    font-size: 12.5px; line-height: 1.5; overflow-x: auto; white-space: pre;
+  }
+  pre.term .c { color: #7c8aa5; }
+  pre.term .p { color: #fb923c; }
+  pre.term .g { color: #4ade80; }
+  pre.term .r { color: #f87171; }
+
+  /* Step nav */
+  nav.steps {
+    position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+  }
+  nav.steps ol { list-style: none; display: flex; gap: 6px; margin: 0; padding: 10px 0; overflow-x: auto; }
+  nav.steps a {
+    display: flex; align-items: center; gap: 8px; white-space: nowrap; text-decoration: none; color: var(--text);
+    font-size: 13px; font-weight: 600; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  nav.steps a span { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 12px; }
+
+  /* Journey steps */
+  .step { padding: 34px 0; border-top: 1px solid var(--line); scroll-margin-top: 64px; }
+  .step-head { display: grid; grid-template-columns: 64px 1fr; gap: 18px; align-items: start; margin-bottom: 18px; }
+  .big-num {
+    width: 64px; height: 64px; border-radius: 18px; background: var(--accent); color: #fff; display: grid;
+    place-items: center; font-size: 28px; font-weight: 800; box-shadow: 0 8px 20px rgba(234, 88, 12, .3);
+  }
+  .step h3 { font-size: 24px; margin: 4px 0 10px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .action {
+    display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 10px;
+    background: var(--accent-soft); color: var(--text); font-size: 14px; border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .action svg { flex: none; }
+  .action.auto { background: var(--surface-2); border-color: var(--line); color: var(--muted); }
+  figure { margin: 0; }
+  figure a { display: block; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--surface); }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+  .notes > div { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; font-size: 14.5px; }
+  .notes h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); }
+  .notes ul { margin: 0; padding-left: 18px; }
+  .notes li { margin: 3px 0; }
+  .notes .behind { background: var(--info-soft); border-color: transparent; }
+
+  /* Guarantees */
+  .never { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .never .card h3 { font-size: 15px; }
+  .x { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--block-soft); color: var(--block); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+
+  footer { padding: 30px 0 60px; color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 980px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .pipe { grid-template-columns: 1fr; gap: 14px; }
+    .stage { display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; padding: 0; }
+    .stage .dot { grid-row: span 3; margin: 0; }
+    .stage:not(:last-child)::after { top: 48px; left: 21px; right: auto; width: 2px; height: calc(100% - 34px);
+      background: repeating-linear-gradient(180deg, var(--accent) 0 8px, transparent 8px 13px); }
+    .stage:not(:last-child)::before { display: none; }
+    .setup, .never, .notes, .trust { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .step-head { grid-template-columns: 1fr; }
+    .big-num { width: 48px; height: 48px; font-size: 22px; border-radius: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">WebMCP Scout · product overview</div>
+    <h1>Ask several web shops at once, get one ranked list</h1>
+    <p class="lede">Some web shops publish WebMCP tools: functions such as <code>search_product</code> that an AI agent can call instead of clicking through the page. Scout calls only the tools you approved, on every shop you listed, and merges the answers into one list. Below is one real run: a user looks for soccer boots under 150 dollars in the desktop viewer.</p>
+    <div class="request">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span>Request: <b>soccer shoes under 150 dollars</b></span>
+    </div>
+
+    <div class="stats" aria-label="Numbers from this run">
+      <div class="stat"><div class="n">2</div><div class="l">shops asked in parallel</div></div>
+      <div class="stat"><div class="n">13</div><div class="l">WebMCP tools found</div></div>
+      <div class="stat block"><div class="n">9</div><div class="l">tools blocked, not on your list</div></div>
+      <div class="stat"><div class="n">2</div><div class="l">calls to the AI model (625 and 673 ms)</div></div>
+      <div class="stat ok"><div class="n">31<span style="font-size:16px;color:var(--muted)"> / 37</span></div><div class="l">products kept, of 37 returned</div></div>
+      <div class="stat"><div class="n">2.2 s</div><div class="l">to search both shops, as timed in the trace</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="how">
+  <div class="wrap">
+    <h2>What happens in one run</h2>
+    <p class="sub">Scout does the same seven things for every shop. The numbers come from the run shown further down.</p>
+
+    <div class="pipe">
+      <div class="stage">
+        <div class="dot">1</div>
+        <h3>Open</h3>
+        <p>Scout starts its own Chrome, with no window and an empty profile: none of your logins or cookies.</p>
+        <span class="chip">2 sites</span>
+      </div>
+      <div class="stage">
+        <div class="dot">2</div>
+        <h3>Discover</h3>
+        <p>Each shop page tells Scout which tools it offers and which inputs each one takes.</p>
+        <span class="chip">8 + 5 tools</span>
+      </div>
+      <div class="stage">
+        <div class="dot">3</div>
+        <h3>Filter</h3>
+        <p>Only the tools you approved in <code>sites.toml</code> go on. A tool whose inputs changed since you approved it is blocked as well.</p>
+        <span class="chip ok">4 pass</span><span class="chip block">9 blocked</span>
+      </div>
+      <div class="stage">
+        <div class="dot">4</div>
+        <h3>Choose</h3>
+        <p>An AI model picks one tool and fills in its inputs. Code then checks them against what the tool accepts.</p>
+        <span class="chip info">2 LLM calls</span>
+      </div>
+      <div class="stage">
+        <div class="dot">5</div>
+        <h3>Check and call</h3>
+        <p>Just before the call, Scout reads the tool list again to make sure the tool is still the approved, read-only one.</p>
+        <span class="chip">1 + 10 ms</span>
+      </div>
+      <div class="stage">
+        <div class="dot">6</div>
+        <h3>Rank</h3>
+        <p>Code drops products over budget or out of stock, then sorts the rest by how well they match the request. Each dropped product keeps its reason.</p>
+        <span class="chip ok">31 kept</span><span class="chip block">6 out</span>
+      </div>
+      <div class="stage">
+        <div class="dot">7</div>
+        <h3>Record</h3>
+        <p>Each step becomes one line of a JSONL file, the trace. The desktop viewer displays it.</p>
+        <span class="chip">24 events</span>
+      </div>
+    </div>
+
+    <div class="trust">
+      <div class="bad"><b>Not trusted: anything a web page says</b>Tool descriptions, inputs, results and product names come from the shop. They can appear in the answer, but they cannot change which tools may run, the rules, or which shops are asked.</div>
+      <div class="good"><b>Trusted: your settings and Scout's code</b><code>sites.toml</code> lists the tools that may run. Price and stock limits are applied by code, not by the model.</div>
+    </div>
+  </div>
+</section>
+
+<section id="setup">
+  <div class="wrap">
+    <h2>Before the first run</h2>
+    <p class="sub">You do this once. After that, everything happens in the viewer.</p>
+    <div class="setup">
+      <div class="card">
+        <h3><span class="num">A</span>Approve the tools</h3>
+        <p>For each shop, list the tools Scout may call. The hash pins the tool's inputs: if the shop changes them, the tool is blocked until you check it and update the hash.</p>
+<pre class="term"><span class="c"># sites.toml</span>
+[sites.sport]
+url = "https://googlechromelabs.github.io/…"
+
+[[sites.sport.capabilities]]
+tool = "search_product"
+schema_hash = "sha256:c8ae5f9e…"
+class = "read_only"</pre>
+      </div>
+      <div class="card">
+        <h3><span class="num">B</span>Add a model key</h3>
+        <p>Any OpenAI-compatible API works; this setup uses Groq. The key goes in <code>.env</code>, which git does not commit.</p>
+<pre class="term"><span class="c"># .env (names from .env.example)</span>
+FALLBACK_BASE_URL=https://api.groq.com/openai/v1
+FALLBACK_MODEL=qwen/qwen3.8-27b
+FALLBACK_API_KEY=<span class="c">…</span></pre>
+      </div>
+      <div class="card">
+        <h3><span class="num">C</span>Build and open the viewer</h3>
+        <p>The viewer starts the <code>scout</code> program you just built, from the project folder.</p>
+<pre class="term"><span class="p">$</span> cargo build -p scout-cli
+<span class="p">$</span> cd apps/desktop/src-tauri
+<span class="p">$</span> cargo tauri dev
+<span class="c">  # or: cargo tauri build → .deb, AppImage</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<nav class="steps" aria-label="Journey steps">
+  <div class="wrap">
+    <ol>
+      <li><a href="#step-1"><span>1</span>Type a request</a></li>
+      <li><a href="#step-2"><span>2</span>Ask every site</a></li>
+      <li><a href="#step-3"><span>3</span>Trace opens</a></li>
+      <li><a href="#step-4"><span>4</span>Ranking</a></li>
+      <li><a href="#step-5"><span>5</span>Guardrails</a></li>
+      <li><a href="#step-6"><span>6</span>A decision</a></li>
+      <li><a href="#step-7"><span>7</span>Trace from disk</a></li>
+    </ol>
+  </div>
+</nav>
+
+<main class="wrap" id="journey">
+  <section style="padding-bottom:6px">
+    <h2>The run, click by click</h2>
+    <p class="sub">Orange boxes and numbered labels explain the screen; the black pointer shows where the user clicks. Each screenshot opens full size.</p>
+  </section>
+
+  <article class="step" id="step-1">
+    <div class="step-head">
+      <div class="big-num">1</div>
+      <div>
+        <h3>Type a request</h3>
+        <div class="actions">
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click the request field</span>
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Type <code>soccer shoes under 150 dollars</code></span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-1-request.png" target="_blank" rel="noopener"><img src="images/journey-1-request.png" alt="Viewer with the request typed in the sidebar field and earlier traces listed below it" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>The sidebar holds the request form and the list of earlier runs; the newest one is open on the right.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li>Two earlier traces, newest first.</li><li>The most recent run, already open.</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>Nothing has run yet.</li><li>Scout reads “under 150 dollars” as a price limit of 150 USD. Code does this, not the model.</li></ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="step-2">
+    <div class="step-head">
+      <div class="big-num">2</div>
+      <div>
+        <h3>Ask every site</h3>
+        <div class="actions">
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click <b>Ask every site</b></span>
+          <span class="action auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Wait a few seconds</span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-2-run.png" target="_blank" rel="noopener"><img src="images/journey-2-run.png" alt="Button shows Running, a Run in progress card streams the first output lines" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>The button locks and the output of the run streams into the main panel.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li><b>Running…</b> on the button; a second run cannot start.</li><li>One line per site: the tool it called and how many products came back.</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>The viewer runs <code>scout ask -- &lt;request&gt;</code> directly, without a shell, so the request text cannot turn into a command or an option.</li><li>The viewer only starts Scout and shows its output. It does not control Chrome.</li></ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="step-3">
+    <div class="step-head">
+      <div class="big-num">3</div>
+      <div>
+        <h3>The trace opens by itself</h3>
+        <div class="actions">
+          <span class="action auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Nothing to click</span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-3-result.png" target="_blank" rel="noopener"><img src="images/journey-3-result.png" alt="New viewer trace selected in the list, last run output, request header and sites table" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>The new trace is on top of the list and selected; the summary starts with the Sites table.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li>Both shops marked <b>done</b>, with the tool each one used, how long the model took to choose it, and the tokens it cost.</li><li>The CLI output of the run, kept above the summary.</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>The run wrote <code>traces/&lt;time&gt;-viewer.jsonl</code>; the viewer lists the folder again and opens it.</li><li>If the run fails, the viewer shows its exit code.</li></ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="step-4">
+    <div class="step-head">
+      <div class="big-num">4</div>
+      <div>
+        <h3>Read the ranking</h3>
+        <div class="actions">
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Scroll down</span>
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click <b>Excluded</b></span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-4-ranking.png" target="_blank" rel="noopener"><img src="images/journey-4-ranking.png" alt="Ranking table with products from both shops and the opened Excluded list" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>One list across both shops; the excluded products are listed with their reason.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li>Top 20 of 31 products, the boots that match best first.</li><li>6 products left out: 5 over budget, 1 out of stock.</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>The filters are code, so a model cannot let a 220 USD boot through.</li><li>The score has no randomness: the same trace always gives the same order.</li></ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="step-5">
+    <div class="step-head">
+      <div class="big-num">5</div>
+      <div>
+        <h3>Check the guardrails</h3>
+        <div class="actions">
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click <code>shoes</code> in the Sites table</span>
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Scroll to Timeline</span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-5-guardrails.png" target="_blank" rel="noopener"><img src="images/journey-5-guardrails.png" alt="Timeline filtered to the shoes site, with seven tool_excluded rows and the policy check before execution" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>The Shoe Store's timeline: the blocked tools first, then the check and the call.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li>7 <code>tool_excluded</code> rows, <code>purchase_cart</code> among them.</li><li><code>policy_checked</code> just before <code>executed</code>.</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>Blocked tools are removed before the model is asked, so it never sees their names.</li><li>An approved tool is refused too if the shop changed its inputs after you approved it.</li></ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="step-6">
+    <div class="step-head">
+      <div class="big-num">6</div>
+      <div>
+        <h3>Open a decision</h3>
+        <div class="actions">
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click <code>sport</code> in Sites</span>
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click the <b>routed</b> row</span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-6-decision.png" target="_blank" rel="noopener"><img src="images/journey-6-decision.png" alt="Routed event expanded to its raw JSON: tool, arguments, latency and token usage" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>The raw record of one routing decision, with its arguments and its cost.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li><code>search_product</code> with <code>category: SOCCER</code>, <code>size: ALL</code>.</li><li>673 ms, 448 tokens in, 262 out (223 of them reasoning).</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>If the model's inputs do not fit what the tool accepts, the run stops before anything is called.</li><li>Scout has more than one way to choose a tool, and all of them record these fields, so their runs can be compared.</li></ul></div>
+    </div>
+  </article>
+
+  <article class="step" id="step-7">
+    <div class="step-head">
+      <div class="big-num">7</div>
+      <div>
+        <h3>Open a trace from disk</h3>
+        <div class="actions">
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"/></svg>Click <b>Open a trace file</b></span>
+          <span class="action"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7h6l2 2h10v10H3z"/></svg>Pick a <code>.jsonl</code></span>
+        </div>
+      </div>
+    </div>
+    <figure>
+      <a href="images/journey-7-untrusted.png" target="_blank" rel="noopener"><img src="images/journey-7-untrusted.png" alt="A tampered trace: the script tag in the request and an img tag in a product name are shown as plain text" loading="lazy" width="1920" height="1080"></a>
+      <figcaption>A tampered trace: the HTML in the request and in a product name appears as plain text.</figcaption>
+    </figure>
+    <div class="notes">
+      <div><h4>You see</h4><ul><li><code>&lt;script&gt;</code> and <code>&lt;img onerror&gt;</code> as literal text.</li><li>A broken file names the line that failed instead of showing half a run.</li></ul></div>
+      <div class="behind"><h4>Behind the scenes</h4><ul><li>The viewer inserts every string from a trace as plain text, and the window's security policy (CSP) lets only the app's own code run.</li><li>Product URLs are shown but not clickable.</li></ul></div>
+    </div>
+  </article>
+
+  <section id="cli">
+    <h2>The same run from a terminal</h2>
+    <p class="sub">You don't need the viewer. In a terminal, <code>scout ask</code> prints the same output the viewer showed in step 2.</p>
+<pre class="term"><span class="p">$</span> scout ask -- "soccer shoes under 150 dollars"
+trace: traces/1790689457-viewer.jsonl
+[shoes] get_all_store_items {}
+  33 product(s)
+[sport] search_product {"category":"SOCCER","query":"soccer shoes","size":"ALL"}
+  4 product(s)
+
+<span class="g">31 product(s) ranked, 6 excluded (in stock, price &lt;= 150 USD)</span>
+  1. 1.00  Gemini Future Ultimate Youth Soccer Boots  85.00 USD  stock 7  [sport gemini-ultimate-boots-youth]
+  2. 0.50  Nano Banana Solo Soccer Trainer  14.99 USD  stock 5  [sport nano-banana-soccer-trainer]
+  3. 0.00  SS-MS-0075  25.00 USD  stock 7  [shoes 23]
+  4. 0.00  Bridgport Advice  30.00 USD  stock 4  [shoes 16]
+  5. 0.00  SS-HL-0135  30.00 USD  stock 6  [shoes 20]
+  6. 0.00  SS-PM-0093  30.00 USD  stock 3  [shoes 25]
+  7. 0.00  SS-HL-0128  35.00 USD  stock 3  [shoes 22]
+  8. 0.00  SS-HL-0136  50.00 USD  stock 4  [shoes 21]
+  9. 0.00  Nizza X Disney  55.00 USD  stock 6  [shoes 26]
+ 10. 0.00  Stan Smith  55.00 USD  stock 3  [shoes 28]
+  ... 21 more
+<span class="r">  excluded [shoes 1]: price 160.00 USD over the budget of 150
+  excluded [shoes 4]: price 180.00 USD over the budget of 150
+  excluded [shoes 5]: price 250.00 USD over the budget of 150
+  excluded [shoes 13]: out of stock
+  excluded [sport google-mls-pro-ball]: price 165.00 USD over the budget of 150
+  excluded [sport gemini-ultimate-boots]: price 220.00 USD over the budget of 150</span></pre>
+  </section>
+
+  <section id="never">
+    <h2>What Scout never does</h2>
+    <p class="sub">These rules apply to every run, whatever a page or the model says.</p>
+    <div class="never">
+      <div class="card"><h3><span class="x">✕</span>Call a tool you did not list</h3><p>Tools you did not approve, and approved tools whose inputs changed, are removed before the model is asked.</p></div>
+      <div class="card"><h3><span class="x">✕</span>Change anything on a site</h3><p>Only read-only tools run. Tools like <code>add_to_cart</code> and <code>purchase_cart</code> stay blocked.</p></div>
+      <div class="card"><h3><span class="x">✕</span>Take orders from page text</h3><p>Page text is treated as data. It cannot change your approved tools, the rules or the list of shops.</p></div>
+      <div class="card"><h3><span class="x">✕</span>Use your browser profile</h3><p>Each run gets a fresh temporary Chrome profile; Scout stops only the Chrome it started.</p></div>
+      <div class="card"><h3><span class="x">✕</span>Let a model set the limits</h3><p>Budget and stock filters are applied by code after the tool returns.</p></div>
+      <div class="card"><h3><span class="x">✕</span>Render trace markup</h3><p>HTML inside a trace is shown as text, and product URLs are not clickable.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>How these screenshots were made: the viewer UI ran in Chrome (<code>trunk serve</code>) and was driven with Playwright. A small stand-in for the Tauri backend served two real <code>scout ask</code> traces recorded on 2026-09-29 and replayed the real output of a third run, the soccer-shoes request; the trace name in steps 2–3 follows the app's naming. The tampered trace in step 7 is test data. Orange callouts and the mouse pointer are an overlay drawn for the screenshots, not part of the app.</p>
+    <p>More: <a href="../README.md">README</a> · <a href="threat-model.md">threat model</a> · <a href="media/demo.mp4">demo video</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

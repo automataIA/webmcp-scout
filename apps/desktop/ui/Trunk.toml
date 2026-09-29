@@ -1,0 +1,24 @@
+[build]
+target = "index.html"
+dist = "dist"
+public_url = "/"
+filehash = true
+# SRI attributes break under Tauri's custom protocol: the wasm module would
+# not start and the window stays blank.
+no_sri = true
+
+# Tailwind 4 + DaisyUI 5 through the official CLI (run `npm install` first).
+[[hooks]]
+stage = "pre_build"
+command = "npx"
+command_arguments = ["@tailwindcss/cli", "-i", "style/input.css", "-o", "style/tailwind.css", "--minify"]
+
+[watch]
+ignore = ["./style/tailwind.css", "./node_modules"]
+
+[serve]
+addresses = ["127.0.0.1"]
+# devUrl in tauri.conf.json.
+port = 1420
+open = false
+ws_protocol = "ws"

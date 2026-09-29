@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Alpha Sports</title></head>
+<body>
+<h1>Alpha Sports (fixture shop)</h1>
+<p id="status">loading…</p>
+<script>
+  const CATALOG = [
+    { sku: "A-100", title: "Striker FG Soccer Boots", category: "SOCCER", price_eur: 149.9, sizes: [40, 41, 42, 43, 44, 45], stock: 12 },
+    { sku: "A-101", title: "Pro Elite Soccer Boots", category: "SOCCER", price_eur: 219.0, sizes: [42, 43, 44], stock: 3 },
+    { sku: "A-102", title: "Academy Turf Soccer Shoes", category: "SOCCER", price_eur: 79.5, sizes: [38, 39, 40, 41, 42], stock: 0 },
+    { sku: "A-200", title: "Cloud Runner 3", category: "RUNNING", price_eur: 129.0, sizes: [40, 41, 42, 43, 44, 45, 46], stock: 20 },
+    { sku: "A-201", title: "Trail Blazer GTX", category: "RUNNING", price_eur: 175.0, sizes: [41, 42, 43, 44], stock: 5 },
+    { sku: "A-300", title: "Court King Basketball Shoes", category: "BASKETBALL", price_eur: 139.99, sizes: [42, 43, 44, 45, 46, 47], stock: 7 },
+  ];
+  const mc = document.modelContext;
+  const status = document.getElementById("status");
+  if (!mc) {
+    status.textContent = "WebMCP unavailable";
+  } else {
+    const tools = [
+      {
+        name: "search_products",
+        title: "Search products",
+        description: "Search the Alpha Sports catalog by free-text query, optional category and maximum price in EUR.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Free-text search terms, e.g. 'soccer boots'." },
+            category: { type: "string", enum: ["ALL", "SOCCER", "RUNNING", "BASKETBALL"], description: "Product category." },
+            max_price: { type: "number", minimum: 0, description: "Maximum price in EUR." },
+          },
+          required: ["query"],
+        },
+        annotations: { readOnlyHint: true },
+        execute: async ({ query, category = "ALL", max_price }) => {
+          const words = String(query).toLowerCase().split(/\s+/).filter(Boolean);
+          const items = CATALOG.filter((p) =>
+            (category === "ALL" || p.category === category) &&
+            (max_price === undefined || p.price_eur <= max_price) &&
+            words.some((w) => p.title.toLowerCase().includes(w.replace(/s$/, ""))));
+          return JSON.stringify({ count: items.length, items });
+        },
+      },
+      {
+        name: "get_product",
+        title: "Get product",
+        description: "Get one product by SKU.",
+        inputSchema: { type: "object", properties: { sku: { type: "string" } }, required: ["sku"] },
+        annotations: { readOnlyHint: true },
+        execute: async ({ sku }) => {
+          const p = CATALOG.find((x) => x.sku === sku);
+          return p ? JSON.stringify(p) : `No product with SKU ${sku}`;
+        },
+      },
+    ];
+    Promise.all(tools.map((t) => mc.registerTool(t)))
+      .then(() => (status.textContent = `${tools.length} tools registered`))
+      .catch((e) => (status.textContent = `registration failed: ${e}`));
+  }
+</script>
+</body>
+</html>
