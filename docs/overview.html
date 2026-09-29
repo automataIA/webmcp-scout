@@ -58,6 +58,8 @@
   .stat .n { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
   .stat .l { font-size: 13px; color: var(--muted); }
   .stat.block .n { color: var(--block); }
+  .demo { margin: 22px 0 0; }
+  .demo video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; border-radius: 14px; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--surface); }
   .stat.ok .n { color: var(--ok); }
 
   section { padding: 38px 0; }
@@ -198,6 +200,19 @@
       <div class="stat ok"><div class="n">31<span style="font-size:16px;color:var(--muted)"> / 37</span></div><div class="l">products kept, of 37 returned</div></div>
       <div class="stat"><div class="n">2.2 s</div><div class="l">to search both shops, as timed in the trace</div></div>
     </div>
+
+    <figure class="demo">
+      <video id="demo-video" src="media/demo.mp4" poster="images/demo-1-overview.png" width="1920" height="1080" autoplay muted loop playsinline controls aria-label="71-second tour of the trace viewer: overview, guardrails, routing detail, untrusted input"></video>
+      <figcaption>A 71-second tour of the trace viewer, recorded on the same run. No sound.</figcaption>
+    </figure>
+    <script>
+      // No autoplay for visitors who ask the system for reduced motion.
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const v = document.getElementById('demo-video');
+        v.removeAttribute('autoplay');
+        v.pause();
+      }
+    </script>
   </div>
 </header>
 
@@ -508,7 +523,7 @@ trace: traces/1790689457-viewer.jsonl
 <footer>
   <div class="wrap">
     <p>How these screenshots were made: the viewer UI ran in Chrome (<code>trunk serve</code>) and was driven with Playwright. A small stand-in for the Tauri backend served two real <code>scout ask</code> traces recorded on 2026-09-29 and replayed the real output of a third run, the soccer-shoes request; the trace name in steps 2–3 follows the app's naming. The tampered trace in step 7 is test data. Orange callouts and the mouse pointer are an overlay drawn for the screenshots, not part of the app.</p>
-    <p>More: <a href="../README.md">README</a> · <a href="threat-model.md">threat model</a> · <a href="media/demo.mp4">demo video</a></p>
+    <p>More: <a href="https://github.com/automataIA/webmcp-scout">README and code on GitHub</a> · <a href="https://github.com/automataIA/webmcp-scout/blob/main/docs/threat-model.md">threat model</a> · <a href="media/demo.mp4">demo video</a></p>
   </div>
 </footer>
 

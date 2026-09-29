@@ -132,7 +132,7 @@ cargo run -p scout-cli -- eval routing --replay --scenarios evals/adversarial --
 
 Demo video (71 s): [docs/media/demo.mp4](docs/media/demo.mp4). More annotated screens: [guardrails](docs/images/demo-2-guardrails.png) (tools dropped before routing), [routing detail](docs/images/demo-3-routing.png) (arguments and cost of one decision), [untrusted input](docs/images/demo-4-untrusted.png) (a tampered trace rendered as text). They were recorded with Playwright on the UI in mock mode (`trunk serve`, sample traces), with the callouts drawn by an overlay script that is not part of the app.
 
-A user's run followed click by click, with the pipeline and its numbers: [docs/overview.html](docs/overview.html) (open it locally in a browser).
+A user's run followed click by click, with the pipeline, its numbers and the demo video: [automataia.github.io/webmcp-scout](https://automataia.github.io/webmcp-scout/) (source: [docs/overview.html](docs/overview.html), published by `.github/workflows/pages.yml`).
 
 `apps/desktop` is a separate Cargo workspace (it keeps GTK and wasm out of the core build): a Leptos 0.8 CSR UI built by Trunk, in a Tauri 2 shell. It lists the traces in `traces/`, opens a JSONL file, shows sites, ranked products and the event timeline, and starts `scout ask` runs, streaming their output. It never drives Chrome itself.
 
